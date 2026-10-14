@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>another jere production — 1st mensive edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka+One&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'powder-blue': '#DCEAF5',
+                        'soft-pink': '#F8DCE5',
+                        'butter-yellow': '#F7E8AF',
+                        'warm-cream': '#F5F0E7',
+                        'fox-orange': '#F27A35',
+                        'fox-dark': '#C85210',
+                        'hoodie-blue': '#4A8BB2',
+                        'pixel-dark': '#2B2338',
+                        'pixel-card': '#FFFDF7'
+                    },
+                    fontFamily: {
+                        pixel: ['"Press Start 2P"', 'cursive'],
+                        display: ['"Fredoka One"', 'cursive'],
+                        body: ['"Quicksand"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom pixel aesthetic & responsive overrides */
+        body {
+            background-color: #DCEAF5;
+            background-image: 
+                radial-gradient(#F8DCE5 15%, transparent 16%),
+                radial-gradient(#F7E8AF 15%, transparent 16%);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            font-family: 'Quicksand', sans-serif;
+            color: #2B2338;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
+
+        .pixel-border {
+            box-shadow: 
+                0 0 0 4px #2B2338,
+                0 8px 0 0 rgba(43, 35, 56, 0.2);
+            border-radius: 16px;
+        }
+
+        .pixel-btn {
+            box-shadow: 0 4px 0 #2B2338;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .pixel-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #2B2338;
+        }
+        .pixel-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #2B2338;
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .pulse-soft {
+            animation: pulse-soft 2s ease-in-out infinite;
+        }
+        @keyframes pulse-soft {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        /* Jigsaw Puzzle Styles */
+        .puzzle-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4px;
+            background: #2B2338;
+            padding: 8px;
+            border-radius: 12px;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        @media (min-width: 640px) {
+            .puzzle-board {
+                width: 360px;
+                height: 360px;
+            }
+        }
+
+        .puzzle-piece {
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-sizing: border-box;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        .puzzle-piece.selected {
+            outline: 4px solid #F27A35;
+            transform: scale(0.96);
+            z-index: 10;
+        }
+
+        /* Modal backdrop blurring */
+        .modal-backdrop {
+            background-color: rgba(43, 35, 56, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Canvas game area styling */
+        canvas {
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center p-3 sm:p-6 text-pixel-dark">
+
+    <!-- TOP AUDIO TOGGLE & TITLE HEADER -->
+    <header class="w-full max-w-2xl flex justify-between items-center bg-warm-cream/90 backdrop-blur p-3 sm:p-4 rounded-2xl pixel-border mb-4">
+        <div class="flex items-center space-x-2">
+            <span class="text-xl sm:text-2xl">🦊</span>
+            <div>
+                <h1 class="font-display text-sm sm:text-base text-pixel-dark font-bold leading-tight">another jere production</h1>
+                <p class="text-xs text-gray-500 font-medium">the little player two experience</p>
+            </div>
+        </div>
+        <button id="soundToggle" onclick="toggleSound()" class="pixel-btn bg-butter-yellow text-pixel-dark px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1">
+            <span id="soundIcon">🔊</span> <span id="soundText" class="hidden sm:inline">sound on</span>
+        </button>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main id="mainContainer" class="w-full max-w-2xl bg-warm-cream p-4 sm:p-8 rounded-3xl pixel-border relative overflow-hidden flex-1 flex flex-col justify-center min-h-[500px]">
+        
+        <!-- ==================== SCREEN 0: OPENING / GAME ROOM ==================== -->
+        <section id="screenOpening" class="space-y-6 text-center py-2">
+            <div class="relative inline-block floating">
+                <!-- Sleeping Fox Vector Illustration -->
+                <div id="sleepingFoxContainer" onclick="interactFox()" class="cursor-pointer group relative">
+                    <svg width="180" height="140" viewBox="0 0 180 140" class="mx-auto drop-shadow-md transition-transform group-hover:scale-105">
+                        <!-- Fox Body -->
+                        <path d="M 40,80 Q 30,120 80,125 Q 140,125 140,85 Q 140,50 90,50 Q 50,50 40,80 Z" fill="#F27A35"/>
+                        <!-- Hoodie -->
+                        <path d="M 50,75 Q 80,60 110,75 Q 120,105 50,105 Z" fill="#4A8BB2"/>
+                        <!-- Sleepy Head -->
+                        <circle cx="65" cy="65" r="30" fill="#F27A35"/>
+                        <!-- Cheeks / Muzzle Cream -->
+                        <path d="M 45,70 Q 65,85 85,70 Q 75,90 55,90 Z" fill="#FFF5E6"/>
+                        <!-- Ears -->
+                        <polygon points="45,45 35,15 60,35" fill="#F27A35"/>
+                        <polygon points="42,40 37,20 52,33" fill="#2B2338"/>
+                        <polygon points="75,35 95,15 85,45" fill="#F27A35"/>
+                        <polygon points="78,33 90,20 84,40" fill="#2B2338"/>
+                        <!-- Sleepy ZZZ Eyes -->
+                        <path d="M 52,62 Q 58,68 62,62" stroke="#2B2338" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 72,62 Q 78,68 82,62" stroke="#2B2338" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <!-- Nose -->
+                        <polygon points="63,70 67,70 65,74" fill="#2B2338"/>
+                        <!-- Fluffy Tail -->
+                        <path d="M 120,85 Q 165,75 155,110 Q 120,125 110,100 Z" fill="#F27A35"/>
+                        <path d="M 145,90 Q 165,75 155,110 Z" fill="#FFF5E6"/>
+                    </svg>
+                    <!-- ZZZ Floating Animation -->
+                    <div id="zzzBubble" class="absolute -top-2 right-12 font-pixel text-xs text-hoodie-blue animate-bounce">
+                        z<sup>z</sup><sub>z</sub>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <span class="inline-block bg-soft-pink text-pixel-dark px-3 py-1 rounded-full text-xs font-bold tracking-wide">1st mensive special</span>
+                <h2 class="font-display text-2xl sm:text-4xl text-pixel-dark">another jere production</h2>
+                <p class="text-sm sm:text-base text-gray-600 max-w-md mx-auto leading-relaxed">
+                    a tiny game made by a professional developer.<br>
+                    <span class="text-xs text-gray-400 italic">(professional status currently under investigation.)</span>
+                </p>
+            </div>
+
+            <!-- GAME ROOM EXTRAS BUTTONS -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 max-w-md mx-auto pt-2">
+                <button onclick="openModal('readmeModal')" class="pixel-btn bg-butter-yellow p-2.5 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 border-2 border-pixel-dark">
+                    <span class="text-lg">📄</span> read me.txt
+                </button>
+                <button onclick="openModal('snackModal')" class="pixel-btn bg-soft-pink p-2.5 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 border-2 border-pixel-dark">
+                    <span class="text-lg">🧋</span> snack time
+                </button>
+                <button onclick="openModal('classifiedModal')" class="pixel-btn bg-powder-blue p-2.5 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 border-2 border-pixel-dark">
+                    <span class="text-lg">📁</span> classified
+                </button>
+                <button onclick="openModal('trashModal')" class="pixel-btn bg-gray-200 p-2.5 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 border-2 border-pixel-dark">
+                    <span class="text-lg">🗑️</span> trash bin
+                </button>
+            </div>
+
+            <!-- START GAME BUTTON -->
+            <div class="pt-4">
+                <button onclick="triggerAnnouncement()" class="pixel-btn bg-fox-orange text-white font-display text-lg sm:text-xl px-8 py-3.5 rounded-2xl w-full sm:w-auto pulse-soft">
+                    ▶ start the game
+                </button>
+                <p class="text-xs text-gray-400 mt-3">best played with snacks. no skill required.</p>
+            </div>
+        </section>
+
+        <!-- ==================== SCREEN 1: LEVEL 1 PUZZLE ==================== -->
+        <section id="screenLevel1" class="hidden space-y-4 text-center">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-2">
+                <span class="font-pixel text-xs text-fox-dark">LEVEL 01</span>
+                <h3 class="font-display text-lg sm:text-xl">piece of us</h3>
+                <span id="puzzleProgress" class="font-bold text-xs bg-butter-yellow px-2 py-1 rounded-lg">0 / 9 placed</span>
+            </div>
+
+            <p class="text-xs sm:text-sm text-gray-600">
+                click two pieces to swap them until our garden picnic image is complete!
+            </p>
+
+            <!-- JIGSAW PUZZLE BOARD -->
+            <div id="puzzleBoard" class="puzzle-board shadow-lg">
+                <!-- 9 puzzle pieces generated by JavaScript -->
+            </div>
+
+            <div class="flex justify-center gap-3 pt-2">
+                <button onclick="resetPuzzle()" class="pixel-btn bg-gray-200 text-xs font-bold px-4 py-2 rounded-xl border border-pixel-dark">
+                    🔄 reshuffle
+                </button>
+                <button onclick="showPuzzleHint()" class="pixel-btn bg-butter-yellow text-xs font-bold px-4 py-2 rounded-xl border border-pixel-dark">
+                    💡 show preview
+                </button>
+            </div>
+
+            <!-- VICTORY TRANSITION SECTION (hidden initially) -->
+            <div id="puzzleVictoryBox" class="hidden bg-soft-pink p-4 rounded-2xl border-2 border-pixel-dark space-y-3 floating">
+                <canvas id="victoryCanvas" width="280" height="120" class="mx-auto rounded-xl bg-warm-cream border border-pixel-dark"></canvas>
+                <p class="font-display text-sm text-pixel-dark">"okay wait, we actually make a pretty good team."</p>
+                <button onclick="goToLevel(2)" class="pixel-btn bg-fox-orange text-white font-bold text-sm px-6 py-2.5 rounded-xl">
+                    continue to level 2 ➔
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== SCREEN 2: LEVEL 2 GARDEN HIDDEN OBJECT ==================== -->
+        <section id="screenLevel2" class="hidden space-y-4 text-center">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-2">
+                <span class="font-pixel text-xs text-fox-dark">LEVEL 02</span>
+                <h3 class="font-display text-lg sm:text-xl">where's that little guy?</h3>
+                <button onclick="showGardenHint()" class="pixel-btn bg-butter-yellow text-xs font-bold px-3 py-1 rounded-lg">💡 hint</button>
+            </div>
+
+            <p class="text-xs sm:text-sm text-gray-600">
+                somewhere in this garden, a suspiciously sleepy fox is hiding.<br>
+                <strong>find him before he finds your snacks.</strong>
+            </p>
+
+            <!-- GARDEN SCENE CONTAINER -->
+            <div id="gardenScene" class="relative w-full h-[280px] sm:h-[320px] bg-emerald-100 rounded-2xl border-2 border-pixel-dark overflow-hidden shadow-inner cursor-pointer select-none">
+                <!-- SVG Decorative Background Layers -->
+                <svg width="100%" height="100%" viewBox="0 0 500 320" preserveAspectRatio="none" class="absolute inset-0">
+                    <!-- Sky & Hills -->
+                    <rect width="500" height="320" fill="#E2F0D9"/>
+                    <path d="M 0,160 Q 120,100 250,140 Q 380,180 500,120 L 500,320 L 0,320 Z" fill="#C5E0B4"/>
+                    <path d="M 0,200 Q 150,160 300,210 Q 450,260 500,190 L 500,320 L 0,320 Z" fill="#A9D18E"/>
+                    <!-- Garden Path -->
+                    <path d="M 200,320 Q 240,240 220,180 Q 210,150 250,120" stroke="#F7E8AF" stroke-width="35" fill="none" stroke-linecap="round"/>
+                    <!-- Flower beds -->
+                    <circle cx="80" cy="240" r="25" fill="#F8DCE5"/>
+                    <circle cx="420" cy="260" r="30" fill="#F8DCE5"/>
+                    <circle cx="350" cy="170" r="18" fill="#FFF5E6"/>
+                </svg>
+
+                <!-- Interactive False Objects -->
+                <div onclick="clickWrongGarden('bush1')" class="absolute top-16 left-8 w-16 h-16 bg-emerald-600 rounded-full border-2 border-emerald-800 opacity-90 flex items-center justify-center text-xs hover:scale-105 transition-transform">🌳</div>
+                <div onclick="clickWrongGarden('flower')" class="absolute bottom-12 left-16 text-2xl hover:scale-125 transition-transform">🌸</div>
+                <div onclick="clickWrongGarden('mushroom')" class="absolute bottom-6 right-28 text-2xl hover:scale-125 transition-transform">🍄</div>
+                <div onclick="clickWrongGarden('tree')" class="absolute top-10 right-8 w-20 h-24 bg-emerald-700 rounded-t-full border-2 border-emerald-900 flex items-center justify-center text-xs">🌲</div>
+                <div onclick="clickWrongGarden('rock')" class="absolute bottom-20 right-12 text-xl">🪨</div>
+
+                <!-- Hidden Sleepy Fox Target -->
+                <div id="hiddenFoxTarget" onclick="clickCorrectFox(event)" class="absolute top-[135px] right-[130px] w-12 h-12 cursor-pointer z-20 group">
+                    <svg width="45" height="45" viewBox="0 0 100 100" class="transition-transform group-hover:scale-110 drop-shadow">
+                        <!-- Fox Peeking from behind bush -->
+                        <polygon points="20,40 10,10 40,30" fill="#F27A35"/>
+                        <polygon points="18,35 12,15 32,28" fill="#2B2338"/>
+                        <polygon points="80,40 90,10 60,30" fill="#F27A35"/>
+                        <polygon points="82,35 88,15 68,28" fill="#2B2338"/>
+                        <circle cx="50" cy="50" r="35" fill="#F27A35"/>
+                        <path d="M 25,55 Q 50,75 75,55 Q 60,80 40,80 Z" fill="#FFF5E6"/>
+                        <!-- Eyes sleeping -->
+                        <path d="M 35,48 Q 42,54 48,48" stroke="#2B2338" stroke-width="4" fill="none"/>
+                        <path d="M 52,48 Q 58,54 65,48" stroke="#2B2338" stroke-width="4" fill="none"/>
+                        <polygon points="47,56 53,56 50,60" fill="#2B2338"/>
+                    </svg>
+                    <!-- Visual Hint Glow (toggled via hint button) -->
+                    <div id="foxHintGlow" class="hidden absolute -inset-2 bg-yellow-300 rounded-full animate-ping opacity-75"></div>
+                </div>
+
+                <!-- Bush Hiding the Fox -->
+                <div onclick="clickWrongGarden('bush2')" class="absolute top-[140px] right-[115px] w-20 h-16 bg-emerald-500 rounded-full border-2 border-emerald-700 z-10 pointer-events-none flex items-center justify-center">
+                    🌿
+                </div>
+            </div>
+
+            <!-- Feedback Dialogue Box -->
+            <div id="gardenFeedback" class="bg-warm-cream p-3 rounded-xl border-2 border-pixel-dark text-xs sm:text-sm font-semibold text-pixel-dark min-h-[48px] flex items-center justify-center">
+                click around the garden to spot Jere!
+            </div>
+
+            <div id="gardenNextBtn" class="hidden pt-2">
+                <button onclick="goToLevel(3)" class="pixel-btn bg-fox-orange text-white font-bold text-sm px-6 py-2.5 rounded-xl">
+                    onward to level 3 ➔
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== SCREEN 3: LEVEL 3 EXAM ==================== -->
+        <section id="screenLevel3" class="hidden space-y-4 text-center">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-2">
+                <span class="font-pixel text-xs text-fox-dark">LEVEL 03</span>
+                <h3 class="font-display text-lg sm:text-xl">one last thing...</h3>
+                <span id="examStageTracker" class="font-bold text-xs bg-powder-blue px-2 py-1 rounded-lg">stage 1 of 3</span>
+            </div>
+
+            <p class="text-xs sm:text-sm text-gray-600">
+                pass this highly suspicious exam to unlock the final password clues.
+            </p>
+
+            <!-- STAGE 1: EYES ON SCREEN -->
+            <div id="examStage1" class="space-y-4 bg-pixel-card p-4 rounded-2xl border-2 border-pixel-dark">
+                <h4 class="font-display text-sm text-fox-dark">STAGE 1: eyes on screen</h4>
+                <p class="text-xs text-gray-600">spot the special target code among these suspicious numbers:</p>
+                <div class="font-pixel text-xs bg-gray-100 p-3 rounded-xl tracking-widest text-gray-500 leading-relaxed border">
+                    9999 8888 7777 3333<br>
+                    2222 1111 <span class="text-fox-dark font-bold underline cursor-pointer hover:bg-yellow-200 px-1 rounded" onclick="answerExam(1, true)">520</span> 4444<br>
+                    0000 6666 8888 9999
+                </div>
+                <p class="text-xs italic text-gray-400">click on the code that means "I Love You" in internet slang!</p>
+            </div>
+
+            <!-- STAGE 2: PATTERN RECOGNITION -->
+            <div id="examStage2" class="hidden space-y-4 bg-pixel-card p-4 rounded-2xl border-2 border-pixel-dark">
+                <h4 class="font-display text-sm text-fox-dark">STAGE 2: pattern recognition</h4>
+                <p class="text-xs text-gray-600">complete the romantic sequence clue:</p>
+                <div class="font-pixel text-sm bg-butter-yellow/50 p-3 rounded-xl text-pixel-dark">
+                    520 ➔ 13 ➔ [ ? ]
+                </div>
+                <div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                    <button onclick="answerExam(2, false)" class="pixel-btn bg-white border border-pixel-dark py-2 rounded-lg font-bold text-xs">99</button>
+                    <button onclick="answerExam(2, true)" class="pixel-btn bg-white border border-pixel-dark py-2 rounded-lg font-bold text-xs text-fox-dark">14</button>
+                    <button onclick="answerExam(2, false)" class="pixel-btn bg-white border border-pixel-dark py-2 rounded-lg font-bold text-xs">42</button>
+                </div>
+            </div>
+
+            <!-- STAGE 3: THE RIDDLE -->
+            <div id="examStage3" class="hidden space-y-4 bg-pixel-card p-4 rounded-2xl border-2 border-pixel-dark">
+                <h4 class="font-display text-sm text-fox-dark">STAGE 3: the final clue</h4>
+                <p class="text-xs text-gray-700 font-medium">
+                    "who made this entire game, spent way too much time on it, and is currently avoiding all responsibilities?"
+                </p>
+                <div class="space-y-2 max-w-sm mx-auto text-xs font-bold">
+                    <button onclick="answerExam(3, false)" class="w-full pixel-btn bg-white p-2.5 rounded-xl border border-pixel-dark text-left">
+                        A) a professional developer 👔
+                    </button>
+                    <button onclick="answerExam(3, false)" class="w-full pixel-btn bg-white p-2.5 rounded-xl border border-pixel-dark text-left">
+                        B) a suspicious orange fox 🦊
+                    </button>
+                    <button onclick="answerExam(3, true)" class="w-full pixel-btn bg-butter-yellow p-2.5 rounded-xl border-2 border-pixel-dark text-left text-fox-dark">
+                        C) a very serious developer 😴
+                    </button>
+                </div>
+            </div>
+
+            <div id="examFeedback" class="text-xs font-bold text-fox-dark min-h-[24px]"></div>
+        </section>
+
+        <!-- ==================== SCREEN 4: FINAL PASSWORD ==================== -->
+        <section id="screenPassword" class="hidden space-y-5 text-center py-4">
+            <div class="space-y-1">
+                <span class="inline-block bg-butter-yellow text-pixel-dark px-3 py-1 rounded-full text-xs font-bold">FINAL STAGE</span>
+                <h3 class="font-display text-2xl sm:text-3xl text-pixel-dark">FINAL PASSWORD REQUIRED</h3>
+            </div>
+
+            <p class="text-xs sm:text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
+                you've collected all the clues.<br>
+                one last thing before you leave, player two.
+            </p>
+
+            <div class="max-w-xs mx-auto space-y-3">
+                <input type="text" id="passwordInput" placeholder="enter the password..." class="w-full text-center font-pixel text-sm p-3.5 rounded-2xl border-2 border-pixel-dark focus:outline-none focus:ring-2 focus:ring-fox-orange bg-white shadow-inner" uppercase>
+                <button onclick="checkPassword()" class="w-full pixel-btn bg-fox-orange text-white font-display text-base p-3 rounded-2xl">
+                    🔓 unlock my reward
+                </button>
+            </div>
+
+            <p id="passwordError" class="text-xs font-bold text-red-500 min-h-[20px]"></p>
+        </section>
+
+        <!-- ==================== SCREEN 5: FINAL ENDING ==================== -->
+        <section id="screenEnding" class="hidden space-y-5 text-center py-2">
+            <div class="space-y-1">
+                <span class="inline-block bg-emerald-200 text-emerald-900 px-3 py-1 rounded-full text-xs font-bold tracking-widest animate-bounce">
+                    🏆 ACHIEVEMENT UNLOCKED
+                </span>
+                <h2 class="font-display text-2xl sm:text-4xl text-pixel-dark">PLAYER TWO: UNLOCKED</h2>
+                <p class="text-xs text-gray-500 font-bold">Achievement: "putting up with jere"</p>
+            </div>
+
+            <!-- ANIMATED CELEBRATION CANVAS -->
+            <div class="relative max-w-sm mx-auto">
+                <canvas id="endingCanvas" width="340" height="180" class="mx-auto rounded-2xl border-2 border-pixel-dark bg-warm-cream shadow-md"></canvas>
+            </div>
+
+            <!-- ANNIVERSARY MESSAGE -->
+            <div class="bg-pixel-card p-4 sm:p-5 rounded-2xl border-2 border-pixel-dark max-w-md mx-auto space-y-2 text-xs sm:text-sm text-gray-700 leading-relaxed text-left">
+                <p>thanks for taking the time to play my little game.</p>
+                <p>i know it's not much, but i made this for you.</p>
+                <p class="font-bold text-fox-dark text-base pt-1">happy 1st mensive, sayang. ❤️</p>
+                <p class="text-xs text-gray-500 italic">you're officially my favourite player two.</p>
+            </div>
+
+            <div class="bg-butter-yellow/60 p-3 rounded-xl border border-pixel-dark max-w-md mx-auto text-xs text-left space-y-1">
+                <p class="font-bold text-pixel-dark">developer's final note:</p>
+                <p class="text-gray-700">"thanks for playing my little game. i would've made it harder, but i didn't want you to uninstall me."</p>
+            </div>
+
+            <div class="flex justify-center gap-3 pt-2">
+                <button onclick="openModal('creditsModal')" class="pixel-btn bg-powder-blue text-xs font-bold px-4 py-2.5 rounded-xl border border-pixel-dark">
+                    📜 view credits
+                </button>
+                <button onclick="restartGame()" class="pixel-btn bg-fox-orange text-white text-xs font-bold px-5 py-2.5 rounded-xl">
+                    🔄 play again
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== MODALS & POPUPS ==================== -->
+
+    <!-- ANNOUNCEMENT POPUP MODAL -->
+    <div id="announcementModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+        <div class="bg-warm-cream max-w-sm w-full p-6 rounded-3xl pixel-border text-center space-y-4 floating">
+            <span class="text-3xl">⚠️</span>
+            <h3 class="font-display text-lg text-pixel-dark">IMPORTANT ANNOUNCEMENT</h3>
+            <div class="text-xs sm:text-sm text-gray-600 space-y-2 leading-relaxed">
+                <p>hello player 2.</p>
+                <p>before you continue, please know that this game was made by a very serious and professional developer.</p>
+                <p class="font-bold text-fox-dark">he is currently asleep.</p>
+            </div>
+            <div class="flex flex-col gap-2 pt-2">
+                <button onclick="closeAnnouncement('okay')" class="pixel-btn bg-fox-orange text-white font-bold text-xs py-2.5 rounded-xl">
+                    okay, sure
+                </button>
+                <button onclick="closeAnnouncement('minute')" class="pixel-btn bg-gray-200 text-pixel-dark font-bold text-xs py-2.5 rounded-xl border border-pixel-dark">
+                    i need a minute
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- READ ME MODAL -->
+    <div id="readmeModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+        <div class="bg-warm-cream max-w-sm w-full p-5 rounded-3xl pixel-border text-left space-y-3">
+            <div class="flex justify-between items-center border-b border-gray-300 pb-2">
+                <h4 class="font-display text-sm text-pixel-dark">📄 read me.txt</h4>
+                <button onclick="closeModal('readmeModal')" class="text-gray-500 hover:text-black text-lg">✖</button>
+            </div>
+            <div class="font-mono text-xs text-gray-700 space-y-2 bg-white p-3 rounded-xl border">
+                <p>welcome to my game.</p>
+                <p>if something breaks, no it didn't.</p>
+                <p class="text-fox-dark">please direct all complaints to the sleeping developer.</p>
+            </div>
+            <button onclick="closeModal('readmeModal')" class="w-full pixel-btn bg-butter-yellow font-bold text-xs py-2 rounded-xl border border-pixel-dark">
+                got it
+            </button>
+        </div>
+    </div>
+
+    <!-- SNACK TIME MODAL -->
+    <div id="snackModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+        <div class="bg-warm-cream max-w-sm w-full p-5 rounded-3xl pixel-border text-center space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-300 pb-2">
+                <h4 class="font-display text-sm text-pixel-dark">🧋 snack time menu</h4>
+                <button onclick="closeModal('snackModal')" class="text-gray-500 hover:text-black text-lg">✖</button>
+            </div>
+            <div class="space-y-3 text-left">
+                <!-- Thai Tea -->
+                <div class="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-pixel-dark">
+                    <span class="text-3xl">🧋</span>
+                    <div>
+                        <h5 class="font-bold text-xs text-pixel-dark">Thai tea</h5>
+                        <p class="text-[11px] text-gray-500">"orange drink. very important for survival."</p>
+                    </div>
+                </div>
+                <!-- Dimsum Mentai -->
+                <div class="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-pixel-dark">
+                    <span class="text-3xl">🥟</span>
+                    <div>
+                        <h5 class="font-bold text-xs text-pixel-dark">Dimsum mentai</h5>
+                        <p class="text-[11px] text-gray-500">"tiny food, suspiciously powerful."</p>
+                    </div>
+                </div>
+                <!-- Donut -->
+                <div class="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-pixel-dark">
+                    <span class="text-3xl">🍩</span>
+                    <div>
+                        <h5 class="font-bold text-xs text-pixel-dark">Donut</h5>
+                        <p class="text-[11px] text-gray-500">"round. sweet. emotionally supportive."</p>
+                    </div>
+                </div>
+            </div>
+            <button onclick="closeModal('snackModal')" class="w-full pixel-btn bg-soft-pink font-bold text-xs py-2 rounded-xl border border-pixel-dark">
+                yum! close
+            </button>
+        </div>
+    </div>
+
+    <!-- CLASSIFIED MODAL -->
+    <div id="classifiedModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+        <div class="bg-warm-cream max-w-sm w-full p-5 rounded-3xl pixel-border text-left space-y-3">
+            <div class="flex justify-between items-center border-b border-gray-300 pb-2">
+                <h4 class="font-display text-sm text-red-600">📁 CLASSIFIED FILE</h4>
+                <button onclick="closeModal('classifiedModal')" class="text-gray-500 hover:text-black text-lg">✖</button>
+            </div>
+            <div class="font-pixel text-[10px] bg-pixel-dark text-green-400 p-3 rounded-xl space-y-2">
+                <p>SUBJECT: one very sleepy fox.</p>
+                <p>THREAT LEVEL: low.</p>
+                <p class="text-yellow-300">WILL STEAL YOUR SNACKS: absolutely.</p>
+            </div>
+            <button onclick="closeModal('classifiedModal')" class="w-full pixel-btn bg-powder-blue font-bold text-xs py-2 rounded-xl border border-pixel-dark">
+                close file
+            </button>
+        </div>
+    </div>
+
+    <!-- TRASH MODAL -->
+    <div id="trashModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+        <div class="bg-warm-cream max-w-sm w-full p-5 rounded-3xl pixel-border text-center space-y-3">
+            <div class="flex justify-between items-center border-b border-gray-300 pb-2">
+                <h4 class="font-display text-sm text-pixel-dark">🗑️ recycle bin</h4>
+                <button onclick="closeModal('trashModal')" class="text-gray-500 hover:text-black text-lg">✖</button>
+            </div>
+            <div class="bg-white p-3 rounded-xl border text-xs text-gray-600 space-y-1">
+                <p class="font-bold text-pixel-dark">nothing important here.</p>
+                <p>except 47 unfinished ideas and one developer's dignity.</p>
+            </div>
+            <button onclick="closeModal('trashModal')" class="w-full pixel-btn bg-gray-200 font-bold text-xs py-2 rounded-xl border border-pixel-dark">
+                empty bin
+            </button>
+        </div>
+    </div>
+
+    <!-- CREDITS MODAL -->
+    <div id="creditsModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50">
+        <div class="bg-warm-cream max-w-sm w-full p-5 rounded-3xl pixel-border text-center space-y-4">
+            <h4 class="font-display text-base text-pixel-dark">📜 GAME CREDITS</h4>
+            <div class="text-xs space-y-2 bg-white p-3 rounded-xl border text-left leading-relaxed">
+                <p><strong>game developer:</strong> jere</p>
+                <p><strong>player 2:</strong> blair</p>
+                <p><strong>bug tester:</strong> also blair</p>
+                <p><strong>quality assurance:</strong> one sleepy fox</p>
+                <p><strong>developer status:</strong> asleep</p>
+            </div>
+            <p class="font-display text-xs text-fox-dark">happy 1st mensive, sayang.</p>
+            <button onclick="closeModal('creditsModal')" class="w-full pixel-btn bg-butter-yellow font-bold text-xs py-2 rounded-xl border border-pixel-dark">
+                close
+            </button>
+        </div>
+    </div>
+
+    <!-- SCRIPT INCLUSION -->
+    <script>
+        // Web Audio API Synthesizer for Retro Sound Effects
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'win') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                osc.frequency.setValueAtTime(1046.50, now + 0.3); // C6
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.setValueAtTime(180, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'fox') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(500, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundIcon').innerText = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('soundText').innerText = soundEnabled ? 'sound on' : 'sound off';
+            if (soundEnabled) playSound('click');
+        }
+
+        function openModal(id) {
+            playSound('click');
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            playSound('click');
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function interactFox() {
+            playSound('fox');
+            const zzz = document.getElementById('zzzBubble');
+            zzz.innerText = "YAWN! 🥱";
+            setTimeout(() => {
+                zzz.innerText = "z z z";
+            }, 1200);
+        }
+
+        function triggerAnnouncement() {
+            playSound('click');
+            document.getElementById('announcementModal').classList.remove('hidden');
+        }
+
+        function closeAnnouncement(choice) {
+            playSound('click');
+            document.getElementById('announcementModal').classList.add('hidden');
+            if (choice === 'minute') {
+                alert("Jere says: Take your time, player 2. The sleepy developer isn't going anywhere!");
+            }
+            goToLevel(1);
+        }
+
+        function goToLevel(levelNum) {
+            playSound('click');
+            document.getElementById('screenOpening').classList.add('hidden');
+            document.getElementById('screenLevel1').classList.add('hidden');
+            document.getElementById('screenLevel2').classList.add('hidden');
+            document.getElementById('screenLevel3').classList.add('hidden');
+            document.getElementById('screenPassword').classList.add('hidden');
+            document.getElementById('screenEnding').classList.add('hidden');
+
+            if (levelNum === 1) {
+                document.getElementById('screenLevel1').classList.remove('hidden');
+                initPuzzle();
+            } else if (levelNum === 2) {
+                document.getElementById('screenLevel2').classList.remove('hidden');
+            } else if (levelNum === 3) {
+                document.getElementById('screenLevel3').classList.remove('hidden');
+                initExam();
+            } else if (levelNum === 'password') {
+                document.getElementById('screenPassword').classList.remove('hidden');
+            } else if (levelNum === 'ending') {
+                document.getElementById('screenEnding').classList.remove('hidden');
+                startEndingAnimation();
+            }
+        }
+
+        // JIGSAW PUZZLE STATE & GENERATION
+        const PUZZLE_SIZE = 3;
+        let puzzleState = []; // Array of current piece indices
+        let selectedPieceIndex = null;
+        let puzzleCanvasTiles = []; // Pre-rendered tile Data URLs
+
+        function createPicnicIllustration() {
+            // Draw original picnic scene on hidden canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = 300;
+            canvas.height = 300;
+            const ctx = canvas.getContext('2d');
+
+            // Background
+            ctx.fillStyle = '#F5F0E7';
+            ctx.fillRect(0, 0, 300, 300);
+
+            // Grass hill
+            ctx.fillStyle = '#C5E0B4';
+            ctx.beginPath();
+            ctx.arc(150, 400, 260, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Picnic Blanket
+            ctx.fillStyle = '#F8DCE5';
+            ctx.fillRect(50, 160, 200, 100);
+            ctx.fillStyle = '#FFF5E6';
+            for (let i = 50; i < 250; i += 20) {
+                for (let j = 160; j < 260; j += 20) {
+                    if ((i + j) % 40 === 0) ctx.fillRect(i, j, 10, 10);
+                }
+            }
+
+            // Food on blanket
+            // Thai Tea
+            ctx.fillStyle = '#F27A35';
+            ctx.fillRect(140, 180, 14, 20);
+            ctx.fillStyle = '#FFF';
+            ctx.fillRect(140, 175, 14, 5);
+
+            // Donut
+            ctx.fillStyle = '#C85210';
+            ctx.beginPath(); ctx.arc(175, 190, 10, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#F8DCE5';
+            ctx.beginPath(); ctx.arc(175, 190, 7, 0, Math.PI*2); ctx.fill();
+
+            // JERE FOX (Left)
+            // Head
+            ctx.fillStyle = '#F27A35';
+            ctx.beginPath(); ctx.arc(90, 130, 25, 0, Math.PI*2); ctx.fill();
+            // Hoodie
+            ctx.fillStyle = '#4A8BB2';
+            ctx.fillRect(70, 150, 40, 40);
+            // Ears
+            ctx.fillStyle = '#F27A35';
+            ctx.beginPath(); ctx.moveTo(70, 115); ctx.lineTo(60, 90); ctx.lineTo(80, 110); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(110, 115); ctx.lineTo(120, 90); ctx.lineTo(100, 110); ctx.fill();
+            // Cream Muzzle
+            ctx.fillStyle = '#FFF5E6';
+            ctx.beginPath(); ctx.arc(90, 138, 12, 0, Math.PI*2); ctx.fill();
+            // Nose & Eyes
+            ctx.fillStyle = '#2B2338';
+            ctx.fillRect(88, 132, 4, 4);
+            ctx.fillRect(80, 126, 4, 4);
+            ctx.fillRect(96, 126, 4, 4);
+
+            // BLAIR BUNNY (Right)
+            // Head
+            ctx.fillStyle = '#FFF5E6';
+            ctx.beginPath(); ctx.arc(210, 130, 24, 0, Math.PI*2); ctx.fill();
+            // Pink Outfit
+            ctx.fillStyle = '#F8DCE5';
+            ctx.fillRect(192, 150, 36, 40);
+            // Bunny Ears
+            ctx.fillStyle = '#FFF5E6';
+            ctx.beginPath(); ctx.ellipse(198, 85, 8, 22, -0.1, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(222, 85, 8, 22, 0.1, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#F8DCE5';
+            ctx.beginPath(); ctx.ellipse(198, 85, 4, 15, -0.1, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(222, 85, 4, 15, 0.1, 0, Math.PI*2); ctx.fill();
+            // Eyes & Blush
+            ctx.fillStyle = '#2B2338';
+            ctx.fillRect(202, 126, 4, 4);
+            ctx.fillRect(214, 126, 4, 4);
+            ctx.fillStyle = '#F8DCE5';
+            ctx.beginPath(); ctx.arc(198, 134, 4, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(222, 134, 4, 0, Math.PI*2); ctx.fill();
+
+            // Heart / Title banner
+            ctx.fillStyle = '#2B2338';
+            ctx.font = 'bold 12px Quicksand';
+            ctx.fillText('1st MENSIVE PICNIC', 85, 40);
+
+            // Slice canvas into 9 pieces
+            puzzleCanvasTiles = [];
+            const tileW = 100;
+            const tileH = 100;
+
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    const tileCanvas = document.createElement('canvas');
+                    tileCanvas.width = tileW;
+                    tileCanvas.height = tileH;
+                    const tileCtx = tileCanvas.getContext('2d');
+                    
+                    // Draw slice
+                    tileCtx.drawImage(canvas, c * tileW, r * tileH, tileW, tileH, 0, 0, tileW, tileH);
+                    
+                    // Draw puzzle border outline
+                    tileCtx.strokeStyle = '#2B2338';
+                    tileCtx.lineWidth = 3;
+                    tileCtx.strokeRect(0, 0, tileW, tileH);
+
+                    puzzleCanvasTiles.push(tileCanvas.toDataURL());
+                }
+            }
+        }
+
+        function initPuzzle() {
+            createPicnicIllustration();
+            document.getElementById('puzzleVictoryBox').classList.add('hidden');
+            
+            // Initial state: 0 to 8
+            puzzleState = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+            // Shuffle state until not solved
+            do {
+                puzzleState.sort(() => Math.random() - 0.5);
+            } while (isPuzzleSolved());
+
+            selectedPieceIndex = null;
+            renderPuzzle();
+        }
+
+        function resetPuzzle() {
+            playSound('click');
+            initPuzzle();
+        }
+
+        function renderPuzzle() {
+            const board = document.getElementById('puzzleBoard');
+            board.innerHTML = '';
+
+            let correctCount = 0;
+
+            puzzleState.forEach((tileId, currentPos) => {
+                if (tileId === currentPos) correctCount++;
+
+                const piece = document.createElement('div');
+                piece.className = `puzzle-piece ${selectedPieceIndex === currentPos ? 'selected' : ''}`;
+                piece.style.backgroundImage = `url(${puzzleCanvasTiles[tileId]})`;
+                piece.style.backgroundSize = 'cover';
+                piece.onclick = () => handlePieceClick(currentPos);
+                board.appendChild(piece);
+            });
+
+            document.getElementById('puzzleProgress').innerText = `${correctCount} / 9 placed`;
+
+            if (correctCount === 9) {
+                setTimeout(triggerPuzzleVictory, 300);
+            }
+        }
+
+        function handlePieceClick(pos) {
+            playSound('click');
+            if (selectedPieceIndex === null) {
+                selectedPieceIndex = pos;
+            } else {
+                // Swap pieces
+                const temp = puzzleState[selectedPieceIndex];
+                puzzleState[selectedPieceIndex] = puzzleState[pos];
+                puzzleState[pos] = temp;
+                selectedPieceIndex = null;
+            }
+            renderPuzzle();
+        }
+
+        function isPuzzleSolved() {
+            return puzzleState.every((val, idx) => val === idx);
+        }
+
+        function showPuzzleHint() {
+            playSound('click');
+            alert("Hint: Jere (the Orange Fox) is on the left, Blair (the Bunny) is on the right!");
+        }
+
+        function triggerPuzzleVictory() {
+            playSound('win');
+            document.getElementById('puzzleVictoryBox').classList.remove('hidden');
+            drawVictoryCanvas();
+        }
+
+        function drawVictoryCanvas() {
+            const canvas = document.getElementById('victoryCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw animated High-Five / Head-pat frame
+            ctx.fillStyle = '#F7E8AF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Jere Fox (Left)
+            ctx.fillStyle = '#F27A35';
+            ctx.fillRect(60, 40, 40, 40); // head
+            ctx.fillStyle = '#4A8BB2';
+            ctx.fillRect(55, 80, 50, 30); // body
+            // ears
+            ctx.fillStyle = '#2B2338';
+            ctx.fillRect(55, 25, 12, 18);
+            ctx.fillRect(88, 25, 12, 18);
+
+            // Blair Bunny (Right)
+            ctx.fillStyle = '#FFF5E6';
+            ctx.fillRect(180, 40, 40, 40); // head
+            ctx.fillStyle = '#F8DCE5';
+            ctx.fillRect(175, 80, 50, 30); // body
+            // ears
+            ctx.fillRect(180, 10, 10, 30);
+            ctx.fillRect(205, 10, 10, 30);
+
+            // High-Five Paw / Arm
+            ctx.fillStyle = '#F27A35';
+            ctx.fillRect(105, 60, 40, 10);
+            ctx.fillStyle = '#FFF5E6';
+            ctx.fillRect(140, 60, 40, 10);
+
+            // Sparkles
+            ctx.fillStyle = '#F27A35';
+            ctx.font = 'bold 16px Press Start 2P';
+            ctx.fillText('✨ HIGH FIVE! ✨', 50, 130);
+        }
+
+        function clickWrongGarden(type) {
+            playSound('wrong');
+            const feedback = document.getElementById('gardenFeedback');
+            if (type === 'bush1' || type === 'bush2') {
+                feedback.innerText = "that's literally a bush, sayang.";
+            } else if (type === 'flower') {
+                feedback.innerText = "close. emotionally. not geographically.";
+            } else if (type === 'mushroom') {
+                feedback.innerText = "that's a mushroom. the fox is filing a complaint about your eyesight.";
+            } else {
+                feedback.innerText = "nope! keep looking around the garden.";
+            }
+        }
+
+        function showGardenHint() {
+            playSound('click');
+            const glow = document.getElementById('foxHintGlow');
+            glow.classList.remove('hidden');
+            setTimeout(() => glow.classList.add('hidden'), 2500);
+            document.getElementById('gardenFeedback').innerText = "hint: check near the right-hand bushes!";
+        }
+
+        function clickCorrectFox(e) {
+            e.stopPropagation();
+            playSound('win');
+            const feedback = document.getElementById('gardenFeedback');
+            feedback.innerHTML = "<span class='text-fox-dark font-bold'>FOUND HIM!</span> he was hiding from his responsibilities. understandable.";
+            document.getElementById('gardenNextBtn').classList.remove('hidden');
+        }
+
+        let currentExamStage = 1;
+
+        function initExam() {
+            currentExamStage = 1;
+            document.getElementById('examStage1').classList.remove('hidden');
+            document.getElementById('examStage2').classList.add('hidden');
+            document.getElementById('examStage3').classList.add('hidden');
+            document.getElementById('examFeedback').innerText = "";
+            document.getElementById('examStageTracker').innerText = "stage 1 of 3";
+        }
+
+        function answerExam(stage, isCorrect) {
+            const feedback = document.getElementById('examFeedback');
+            if (isCorrect) {
+                playSound('win');
+                feedback.innerText = "correct! stage cleared!";
+                setTimeout(() => {
+                    feedback.innerText = "";
+                    if (stage === 1) {
+                        currentExamStage = 2;
+                        document.getElementById('examStage1').classList.add('hidden');
+                        document.getElementById('examStage2').classList.remove('hidden');
+                        document.getElementById('examStageTracker').innerText = "stage 2 of 3";
+                    } else if (stage === 2) {
+                        currentExamStage = 3;
+                        document.getElementById('examStage2').classList.add('hidden');
+                        document.getElementById('examStage3').classList.remove('hidden');
+                        document.getElementById('examStageTracker').innerText = "stage 3 of 3";
+                    } else if (stage === 3) {
+                        goToLevel('password');
+                    }
+                }, 800);
+            } else {
+                playSound('wrong');
+                feedback.innerText = "nope! try again, player two.";
+            }
+        }
+
+        function checkPassword() {
+            const input = document.getElementById('passwordInput').value.trim().replace(/\s+/g, '');
+            const error = document.getElementById('passwordError');
+
+            if (input === "5201314") {
+                playSound('win');
+                error.innerText = "";
+                goToLevel('ending');
+            } else {
+                playSound('wrong');
+                const wrongMsgs = [
+                    "nope. the developer is disappointed but not surprised.",
+                    "wrong password. please consult your remaining brain cells.",
+                    "so close. said nobody. try again."
+                ];
+                error.innerText = wrongMsgs[Math.floor(Math.random() * wrongMsgs.length)];
+            }
+        }
+
+        function startEndingAnimation() {
+            const canvas = document.getElementById('endingCanvas');
+            const ctx = canvas.getContext('2d');
+            let frame = 0;
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Background
+                ctx.fillStyle = '#F5F0E7';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Floating Hearts / Stars
+                for (let i = 0; i < 8; i++) {
+                    const x = (i * 45 + frame * 2) % canvas.width;
+                    const y = 30 + Math.sin((frame + i * 10) * 0.05) * 15;
+                    ctx.fillStyle = i % 2 === 0 ? '#F8DCE5' : '#F7E8AF';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Jere Fox
+                const foxX = 100 + Math.sin(frame * 0.05) * 5;
+                ctx.fillStyle = '#F27A35';
+                ctx.beginPath(); ctx.arc(foxX, 100, 22, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#4A8BB2';
+                ctx.fillRect(foxX - 18, 118, 36, 30);
+
+                // Blair Bunny
+                const bunnyX = 220 - Math.sin(frame * 0.05) * 5;
+                ctx.fillStyle = '#FFF5E6';
+                ctx.beginPath(); ctx.arc(bunnyX, 100, 22, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#F8DCE5';
+                ctx.fillRect(bunnyX - 18, 118, 36, 30);
+                // Ears
+                ctx.fillStyle = '#FFF5E6';
+                ctx.fillRect(bunnyX - 12, 60, 8, 25);
+                ctx.fillRect(bunnyX + 4, 60, 8, 25);
+
+                // Cake in between
+                ctx.fillStyle = '#F7E8AF';
+                ctx.fillRect(150, 125, 30, 20);
+                ctx.fillStyle = '#F8DCE5';
+                ctx.fillRect(146, 120, 38, 8);
+                // Candle
+                ctx.fillStyle = '#F27A35';
+                ctx.fillRect(163, 110, 4, 10);
+
+                frame++;
+                if (!document.getElementById('screenEnding').classList.contains('hidden')) {
+                    requestAnimationFrame(animate);
+                }
+            }
+
+            animate();
+        }
+
+        function restartGame() {
+            playSound('click');
+            goToLevel(1);
+        }
+
+        window.onload = function() {
+            // Initial setup
+        };
+    </script>
+</body>
+</html>
